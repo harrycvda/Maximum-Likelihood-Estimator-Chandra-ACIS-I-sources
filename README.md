@@ -27,7 +27,6 @@ This repository contains the self-contained WavLEX source code, `WavLEX_v1.py`, 
 | CIAO | 4.17 (developed with CalDB 4.12.4) | The commands used are backward compatible with CIAO 4.14 |
 | Python | 3.7 or later  | Included with CIAO |
 | MARX | 5.5.3 or later | Included with CIAO |
-| Python packages | |
 
 Python and MARX come with the CIAO download, so a working CIAO installation is all most users need. WavLEX must be run in a shell where CIAO has been initialized. See the [CIAO download and installation guide](https://cxc.cfa.harvard.edu/ciao/download/) for help.
 
