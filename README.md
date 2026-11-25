@@ -1,8 +1,6 @@
-# WavLEX
+# Welcome to the WavLEX source code
 
-**Wavelet detection and Likelihood Evaluation of X-ray sources**
-
-WavLEX is a Python tool for detecting X-ray sources in Chandra X-ray Observatory observations, built on CIAO. It was developed by Van Der Ark et al. for the Chandra Legacy Survey of the Central 6° × 4° around Sgr A*.
+WavLEX (Wavelet detection and Likelihood Evaluation of X-ray sources) is a Python tool for detecting X-ray sources in Chandra X-ray Observatory observations, built on CIAO. It was developed by Van Der Ark et al. for the Chandra Legacy Survey of the Central 6° × 4° around Sgr A*.
 
 For the full method and science results, see:
 
