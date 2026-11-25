@@ -6,7 +6,7 @@ WavLEX is a Python tool for detecting X-ray sources in Chandra X-ray Observatory
 
 For the full method and science results, see:
 
-> Van Der Ark et al. (YEAR), "The Chandra Legacy Survey of the Central 6° × 4° around Sgr A*. I. WavLEX Source Detection Tool"
+> Van Der Ark et al. 2026, "The Chandra Legacy Survey of the Central 6° × 4° around Sgr A*. I. WavLEX Source Detection Tool"
 > [arXiv: DOI pending] · [ApJS: DOI pending]
 
 This repository contains the self-contained WavLEX source code, `WavLEX_v1.py`, and an optional add-on for column density lookups, `nH_lookup.py`.
