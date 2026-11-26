@@ -1,6 +1,6 @@
 # Welcome to the WavLEX source code
 
-WavLEX (Wavelet detection and Likelihood Evaluation of X-ray sources) is a Python tool for detecting X-ray sources in Chandra X-ray Observatory observations, built on CIAO. It was developed by Van Der Ark et al. for the Chandra Legacy Survey of the Central 6° × 4° around Sgr A*.
+WavLEX (Wavelet detection and Likelihood Evaluation of X-ray sources) is a Python tool for detecting X-ray sources in Chandra X-ray Observatory data, specialized for low exposures. It was developed by Van Der Ark et al. for the Chandra Legacy Survey.
 
 For the full method and science results, see:
 
@@ -22,7 +22,7 @@ This repository contains the self-contained WavLEX source code, `wavlex_v1.py`, 
 
 | Software | Version | Notes |
 |---|---|---|
-| CIAO | 4.17 (developed with CalDB 4.12.4) | The commands used are backward compatible with CIAO 4.14 |
+| CIAO | 4.17 or later (developed with CalDB 4.12.4) | Theoretically backwards compatible to CIAO 4.14 but untested |
 | Python | 3.7 or later  | Included with CIAO |
 | MARX | 5.5.3 or later | Included with CIAO |
 
@@ -34,8 +34,8 @@ Before running, open `wavlex_v1.py` and edit the `SETTINGS` block at the top:
 
 | Setting | Variable | Description |
 |---|---|---|
-| ObsID(s) | `OBSIDS` | The Chandra ObsIDs to process, e.g. `[23897]` |
-| Energy band | `E_MIN`, `E_MAX` | Minimum and maximum energy, in keV (default 1.2 to 2.0) |
+| ObsID(s) | `OBSIDS` | The Chandra ObsIDs to process, e.g. `[23884]` |
+| Energy band | `E_MIN`, `E_MAX` | Minimum and maximum energy, in keV (default 0.5 to 8.0) |
 | Output directory | `OUTDIR` | Folder where downloads, products and results are written (default `med_run`) |
 
 Then run:
@@ -44,11 +44,11 @@ Then run:
 python wavlex_v1.py
 ```
 
-The defaults (ObsID 23897, 1.2–2.0 keV) work as a first test. [TODO: add typical runtime and disk usage.]
-
 WavLEX requires no pre-processing on the part of the user, raw ObsIDs will be used to download and process public Chandra X-ray observations directly into a source list.
 
-To process many ObsIDs in parallel, set `N_WORKERS` in `wavlex_v1.py` and the same number in `launch_wavlex.py`, then run `python launch_wavlex.py`. Each worker takes an equal share of `OBSIDS`. With the default `N_WORKERS = 1`, run `wavlex_v1.py` directly.
+The defaults (ObsID 23884, 0.5–8.0 keV) work as a first test. On these test settings a typical runtime 45 minutes on a single 4.05 GHz processing core and 300 MB required storage. The most computationally expensive process within WavLEX is fitting source models to each source candidate as such runtime is approximately proportional to the number of source candidates in a given ObsID. For users wishing to process several ObsIDs we recommend running parallel workers on a remote session.
+
+To process many ObsIDs in parallel, set `N_WORKERS` in `wavlex_v1.py` and the same number in `launch_wavlex.py`, then run `python launch_wavlex.py`. Each worker takes an equal share of `OBSIDS`. With the default `N_WORKERS = 1`, run `wavlex_v1.py` directly. `N_WORKERS` must not exceed the number of cores on a users computer. 
 
 ## Output
 
@@ -74,8 +74,8 @@ Main columns (see the paper for full definitions):
 | `bkg_count_density` | Background counts per pixel in the annulus around the source |
 | `mean_region_exposure`, `normalised_exposure` | Mean exposure in the region, and relative to the image mean |
 | `count_threshold` | Sources with fewer counts than this are classed `Too Faint` |
-| `likelihood` | −ln *p* of the source model against background only (larger is more significant) |
-| `source_classification` | `True` (likelihood > 7), `Marginal` (> 2), `False`, `Too Faint`, or `nan` |
+| `likelihood` | Maximum Likelihood Estimate from comparing source and background model, higher is more significant |
+| `source_classification` | `True` (likelihood &geq; 10), `Marginal` (&geq; 2.5), `Unlikely`, `Too Faint`, or `nan` |
 | `nh1`, `nh2` | Galactic HI and H₂ column densities (cm⁻²), NaN without `nh_lookup.py` |
 | `photon_flux`, `photon_flux_2sig_minus`, `photon_flux_2sig_plus` | Photon flux and 2σ lower/upper errors (photons cm⁻² s⁻¹) |
 
