@@ -7,7 +7,7 @@ For the full method and science results, see:
 > Van Der Ark et al. 2026, "The Chandra Legacy Survey of the Central 6° × 4° around Sgr A*. I. WavLEX Source Detection Tool"
 > [arXiv: DOI pending] · [ApJS: DOI pending]
 
-This repository contains the self-contained WavLEX source code, `WavLEX_v1.py`, and an optional add-on for column density lookups, `nH_lookup.py`.
+This repository contains the self-contained WavLEX source code, `wavlex_v1.py`, an optional add-on for column density lookups, `nh_lookup.py`, and `launch_wavlex.py`, an optional helper for running several workers in parallel.
 
 ## Contents
 
@@ -15,7 +15,7 @@ This repository contains the self-contained WavLEX source code, `WavLEX_v1.py`, 
 - [Usage](#usage)
 - [Output](#output)
 - [Optional: nH lookup](#optional-nh-lookup)
-- [Limitations](#known-limitations)
+- [Limitations](#limitations)
 - [Contact](#contact)
 
 ## Requirements
@@ -30,25 +30,25 @@ Python and MARX come with the CIAO download, so a working CIAO installation is a
 
 ## Usage
 
-Before running, open `WavLEX_v1.py` and set the following:
+Before running, open `wavlex_v1.py` and edit the `SETTINGS` block at the top:
 
-| Setting | Location | Description |
+| Setting | Variable | Description |
 |---|---|---|
-| ObsID(s) | line XXX | The Chandra ObsID(s) to process |
-| Energy band | line YYY | Minimum and maximum energy, in keV |
-| Output directory | line ZZZ | Path where results are written |
-
-[TODO: replace line numbers with variable names, e.g. `OBSIDS`, `E_MIN`, `E_MAX`, `OUTDIR`.]
+| ObsID(s) | `OBSIDS` | The Chandra ObsIDs to process, e.g. `[23897]` |
+| Energy band | `E_MIN`, `E_MAX` | Minimum and maximum energy, in keV (default 1.2 to 2.0) |
+| Output directory | `OUTDIR` | Folder where downloads, products and results are written (default `med_run`) |
 
 Then run:
 
 ```bash
-python WavLEX_v1.py
+python wavlex_v1.py
 ```
 
-[TODO: add a worked example with a sample ObsID and energy band, plus typical runtime and disk usage.]
+The defaults (ObsID 23897, 1.2–2.0 keV) work as a first test. [TODO: add typical runtime and disk usage.]
 
 WavLEX requires no pre-processing on the part of the user, raw ObsIDs will be used to download and process public Chandra X-ray observations directly into a source list.
+
+To process many ObsIDs in parallel, set `N_WORKERS` in `wavlex_v1.py` and the same number in `launch_wavlex.py`, then run `python launch_wavlex.py`. Each worker takes an equal share of `OBSIDS`. With the default `N_WORKERS = 1`, run `wavlex_v1.py` directly.
 
 ## Output
 
@@ -58,16 +58,39 @@ A source list is written for each ObsID to the output directory:
 {ObsID}_likelihood_results.csv
 ```
 
-[TODO: add a short description of the columns, or point to the relevant table in the paper.]
+Main columns (see the paper for full definitions):
+
+| Column | Description |
+|---|---|
+| `region_id` | Source number, in wavdetect order |
+| `Wav_RA`, `Wav_DEC` | wavdetect position (deg) |
+| `MLE_RA`, `MLE_DEC` | Position from the PSF fit (deg) |
+| `Centroid_RA`, `Centroid_DEC` | Centroid of the counts in the fitted region (deg) |
+| `Wav_2sigma_RA`, `Wav_2sigma_DEC` | wavdetect 2σ position errors (arcsec) |
+| `Centroid_95_semimajor`, `Centroid_95_semiminor`, `Centroid_95_PA` | 95% error ellipse of the centroid (arcsec, arcsec, deg east of north) |
+| `Centroid_N_events` | Events in the fitted region |
+| `theta` | Off-axis angle (arcmin) |
+| `region_counts`, `region_pixels/psf_size` | Counts and pixels in the fitted region |
+| `bkg_count_density` | Background counts per pixel in the annulus around the source |
+| `mean_region_exposure`, `normalised_exposure` | Mean exposure in the region, and relative to the image mean |
+| `count_threshold` | Sources with fewer counts than this are classed `Too Faint` |
+| `likelihood` | −ln *p* of the source model against background only (larger is more significant) |
+| `source_classification` | `True` (likelihood > 7), `Marginal` (> 2), `False`, `Too Faint`, or `nan` |
+| `nh1`, `nh2` | Galactic HI and H₂ column densities (cm⁻²), NaN without `nh_lookup.py` |
+| `photon_flux`, `photon_flux_2sig_minus`, `photon_flux_2sig_plus` | Photon flux and 2σ lower/upper errors (photons cm⁻² s⁻¹) |
+
+Besides the csv, WavLEX keeps the download, the `chandra_repro` and `merge_obs` products, the final fit region of each source and the background map. All other intermediate files are deleted when an ObsID finishes.
 
 ## Optional: nH lookup
 
-`nH_lookup.py` is an optional add-on that estimates the hydrogen column density (nH) toward each source. It was included because the Galactic Center fields WavLEX was developed on required it. Most users will not need it. Whether to include nH1 and nH2 estimates from public survey data is up to you, and you can adapt `nH_lookup.py` to your own fields.
+`nh_lookup.py` is an optional add-on that estimates the hydrogen column density (nH) toward each source. It was included because the Galactic Center fields WavLEX was developed on required it. Most users will not need it. Whether to include nH1 and nH2 estimates from public survey data is up to you, and you can adapt `nh_lookup.py` to your own fields.
 
 It requires:
 
 - The [HEASARC ftools package](https://heasarc.gsfc.nasa.gov/docs/software/ftools/)
-- The CO intensity map `wco_map.fits` from [Dame et al. (2001)](https://doi.org/10.1086/318388), available in your local environment 
+- The CO intensity map `wco_map.fits` from [Dame et al. (2001)](https://doi.org/10.1086/318388), in the folder you run from (or set `WCO_MAP` in `wavlex_v1.py`)
+
+Set `HEADAS_DIR` in `nh_lookup.py` to your HEASOFT install. If `nh_lookup.py` is not in the same folder as `wavlex_v1.py`, WavLEX skips the lookup and `nh1` and `nh2` are NaN.
 
 ## Limitations
 
